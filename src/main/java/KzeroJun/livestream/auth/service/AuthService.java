@@ -8,5 +8,4 @@ public interface AuthService {
 
 	ResponseEntity<Void> signUp(SignUpRequest signUpRequest);
 
-	ResponseEntity<> singnIn(SignInRequest signInRequest);
 }

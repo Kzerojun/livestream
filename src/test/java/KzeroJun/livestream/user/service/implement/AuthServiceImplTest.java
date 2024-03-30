@@ -9,7 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import KzeroJun.livestream.user.dto.request.SignUpRequest;
+import KzeroJun.livestream.auth.service.implement.AuthServiceImpl;
+import KzeroJun.livestream.auth.dto.request.SignUpRequest;
 import KzeroJun.livestream.user.exception.DuplicatedEmailException;
 import KzeroJun.livestream.user.exception.DuplicatedNicknameException;
 import KzeroJun.livestream.user.repository.UserRepository;
@@ -24,7 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+public class AuthServiceImplTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -33,7 +34,7 @@ public class UserServiceImplTest {
 	private PasswordEncoder passwordEncoder;
 
 	@InjectMocks
-	private UserServiceImpl userService;
+	private AuthServiceImpl userService;
 
 
 	@DisplayName("회원가입 성공")
