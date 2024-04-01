@@ -1,4 +1,4 @@
-package KzeroJun.livestream.user.exception;
+package KzeroJun.livestream.auth.exception;
 
 
 import KzeroJun.livestream.global.exception.BadRequestException;

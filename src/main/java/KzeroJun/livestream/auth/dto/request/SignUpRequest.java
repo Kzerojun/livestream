@@ -14,14 +14,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SignUpRequest {
 
-	@NotBlank
-	@Pattern(regexp = "^[0-9A-Za-z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])+[.][a-zA-Z]{2,3}$")
+	@NotBlank(message = "이메일을 입력해주세요.")
+	@Pattern(regexp = "^[0-9A-Za-z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])+[.][a-zA-Z]{2,3}$"
+			, message = "이메일 형식으로 입력해주세요.")
 	private String email;
 
-	@NotBlank
+	@NotBlank(message = "비밀번호를 입력해주세요.")
 	private String password;
 
-	@NotBlank
+	@NotBlank(message = "닉네임을 입력해주세요.")
 	private String nickname;
 
 }
