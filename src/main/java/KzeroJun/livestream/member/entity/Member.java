@@ -1,8 +1,7 @@
-package KzeroJun.livestream.user.entity;
+package KzeroJun.livestream.member.entity;
 
-import KzeroJun.livestream.user.constant.Role;
-import KzeroJun.livestream.user.constant.Status;
-import jakarta.persistence.Access;
+import KzeroJun.livestream.member.constant.Role;
+import KzeroJun.livestream.member.constant.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -23,7 +22,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Member {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,7 +50,7 @@ public class User {
 	private Boolean verification;
 
 	@Builder
-	public User(String email, String password, String nickname) {
+	public Member(String email, String password, String nickname) {
 		this.email = email;
 		this.password = password;
 		this.nickname = nickname;
