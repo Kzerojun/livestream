@@ -1,5 +1,8 @@
 package KzeroJun.livestream.global.exception;
 
+import lombok.Getter;
+
+@Getter
 public class ExceptionResponse {
 
 	private final String message;
