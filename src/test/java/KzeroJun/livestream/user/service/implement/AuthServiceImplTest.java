@@ -9,11 +9,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import KzeroJun.livestream.auth.exception.DuplicatedEmailException;
+import KzeroJun.livestream.auth.exception.DuplicatedNicknameException;
 import KzeroJun.livestream.auth.service.implement.AuthServiceImpl;
 import KzeroJun.livestream.auth.dto.request.SignUpRequest;
-import KzeroJun.livestream.user.exception.DuplicatedEmailException;
-import KzeroJun.livestream.user.exception.DuplicatedNicknameException;
-import KzeroJun.livestream.user.repository.UserRepository;
+import KzeroJun.livestream.member.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class AuthServiceImplTest {
 
 	@Mock
-	private UserRepository userRepository;
+	private MemberRepository userRepository;
 
 	@Mock
 	private PasswordEncoder passwordEncoder;
@@ -42,7 +42,7 @@ public class AuthServiceImplTest {
 	void signUp_Success() {
 		SignUpRequest signUpRequest = signUpRequest();
 
-		when(userRepository.existsByEmail(anyString())).thenReturn(false);
+		when(userRepository.existsByLoginId(anyString())).thenReturn(false);
 		when(userRepository.existsByNickname(anyString())).thenReturn(false);
 		when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
@@ -56,7 +56,7 @@ public class AuthServiceImplTest {
 	@Test
 	void signUp_Fail_Duplicated_Email() {
 		SignUpRequest signUpRequest = signUpRequest();
-		when(userRepository.existsByEmail(anyString())).thenReturn(true);
+		when(userRepository.existsByLoginId(anyString())).thenReturn(true);
 
 		assertThatThrownBy(() -> userService.signUp(signUpRequest)).isInstanceOf(
 				DuplicatedEmailException.class);

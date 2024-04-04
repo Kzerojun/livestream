@@ -4,11 +4,11 @@ import KzeroJun.livestream.member.entity.Member;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Long> {
 
-	boolean existsByEmail(String email);
+	boolean existsByLoginId(String loginId);
 
 	boolean existsByNickname(String nickname);
 
-	Optional<Member> findByEmail(String email);
+	Optional<Member> findByLoginId(String loginId);
 }
