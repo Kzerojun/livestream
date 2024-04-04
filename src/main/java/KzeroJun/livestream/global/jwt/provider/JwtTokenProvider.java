@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,13 +36,16 @@ public class JwtTokenProvider {
 
 
 	public SignInResponse generateToken(Authentication authentication) {
-		Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+		String authorities = authentication.getAuthorities()
+				.stream()
+				.map(GrantedAuthority::getAuthority)
+				.collect(Collectors.joining(","));
 
 		//Access Token 생성
 		Date accessTokenExpiresIn = Date.from(Instant.now().plusMillis(accessTokenExpireTime));
 		String accessToken = Jwts.builder()
 				.setSubject(authentication.getName())
-				.claim(jwtSecret, authorities)
+				.claim(AUTHORITIES_KEY, authorities)
 				.setExpiration(accessTokenExpiresIn)
 				.signWith(SignatureAlgorithm.HS256, jwtSecret)
 				.compact();
@@ -53,18 +57,17 @@ public class JwtTokenProvider {
 				.compact();
 
 		return SignInResponse.builder()
+				.grantType(BEARER_TYPE)
 				.accessToken(accessToken)
 				.refreshToken(refreshToken)
 				.refreshTokenExpirationTIme(refreshTokenExpireTime)
 				.build();
 	}
 
-	public String validate(String accessToken) {
+	public boolean validate(String accessToken) {
 		try {
-			return Jwts.parser()
-					.setSigningKey(jwtSecret)
-					.parseClaimsJws(accessToken).getBody()
-					.getSubject();
+			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(accessToken);
+			return true;
 		} catch (SecurityException | MalformedJwtException exception) {
 			log.info("Invalid JWT Token", exception);
 		} catch (ExpiredJwtException exception) {
@@ -75,17 +78,19 @@ public class JwtTokenProvider {
 			log.info("JWT claims string is empty.", e);
 		}
 
-		return null;
+		return false;
 	}
 
 
 	public Authentication getAuthentication(String accessToken) {
 		Claims claims = parseClaims(accessToken);
+		System.out.println(claims);
 		if (claims.get(AUTHORITIES_KEY) == null) {
 			throw new NoPermissionTokenException();
 		}
 
-		Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+		Collection<? extends GrantedAuthority> authorities = Arrays.stream(
+						claims.get(AUTHORITIES_KEY).toString().split(","))
 				.map(SimpleGrantedAuthority::new)
 				.toList();
 
@@ -93,13 +98,24 @@ public class JwtTokenProvider {
 		return new UsernamePasswordAuthenticationToken(principal, "", authorities);
 	}
 
+	public Long getExpiration(String accessToken) {
+		Date expiration = Jwts.parser()
+				.setSigningKey(jwtSecret)
+				.parseClaimsJws(accessToken)
+				.getBody()
+				.getExpiration();
+		return expiration.getTime() - new Date().getTime();
+	}
+
 	private Claims parseClaims(String accessToken) {
 		try {
 			return Jwts.parser()
 					.setSigningKey(jwtSecret)
-					.parseClaimsJws(accessToken).getBody();
+					.parseClaimsJws(accessToken)
+					.getBody();
 		} catch (ExpiredJwtException exception) {
 			return exception.getClaims();
 		}
 	}
+
 }

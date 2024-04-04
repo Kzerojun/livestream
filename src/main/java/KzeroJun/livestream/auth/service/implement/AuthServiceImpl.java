@@ -1,5 +1,6 @@
 package KzeroJun.livestream.auth.service.implement;
 
+import KzeroJun.livestream.auth.dto.request.LogoutRequest;
 import KzeroJun.livestream.auth.dto.request.ReissueRequest;
 import KzeroJun.livestream.auth.dto.request.SignInRequest;
 import KzeroJun.livestream.auth.dto.request.SignUpRequest;
@@ -10,7 +11,7 @@ import KzeroJun.livestream.global.jwt.provider.JwtTokenProvider;
 import KzeroJun.livestream.member.entity.Member;
 import KzeroJun.livestream.auth.exception.DuplicatedEmailException;
 import KzeroJun.livestream.auth.exception.DuplicatedNicknameException;
-import KzeroJun.livestream.member.repository.UserRepository;
+import KzeroJun.livestream.member.repository.MemberRepository;
 import KzeroJun.livestream.auth.service.AuthService;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
 
 	private final PasswordEncoder passwordEncoder;
 
@@ -39,31 +40,33 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public ResponseEntity<Void> signUp(SignUpRequest signUpRequest) {
-		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+		if (memberRepository.existsByLoginId(signUpRequest.getLoginId())) {
 			throw new DuplicatedEmailException();
 		}
 
-		if (userRepository.existsByNickname(signUpRequest.getNickname())) {
+		if (memberRepository.existsByNickname(signUpRequest.getNickname())) {
 			throw new DuplicatedNicknameException();
 		}
 
 		String encodedPassword = passwordEncoder.encode(signUpRequest.getPassword());
 
 		Member user = Member.builder()
-				.email(signUpRequest.getEmail())
+				.loginId(signUpRequest.getLoginId())
 				.password(encodedPassword)
 				.nickname(signUpRequest.getNickname())
 				.build();
 
-		userRepository.save(user);
+		memberRepository.save(user);
 
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
 	@Override
 	public ResponseEntity<SignInResponse> signIn(SignInRequest signInRequest) {
-		userRepository.findByEmail(signInRequest.getEmail())
-				.orElseThrow(LoginFailedException::new);
+
+		if (!memberRepository.existsByLoginId(signInRequest.getLoginId())) {
+			throw new LoginFailedException();
+		}
 
 		UsernamePasswordAuthenticationToken authenticationToken = signInRequest.toAuthentication();
 		Authentication authentication = authenticationManagerBuilder.getObject()
@@ -77,8 +80,9 @@ public class AuthServiceImpl implements AuthService {
 		return ResponseEntity.ok().body(signInResponse);
 	}
 
+	@Override
 	public ResponseEntity<?> reissue(ReissueRequest reissue) {
-		if (jwtTokenProvider.validate(reissue.getRefreshToken()) == null) {
+		if (!jwtTokenProvider.validate(reissue.getRefreshToken())) {
 			throw new NoPermissionTokenException();
 		}
 
@@ -98,4 +102,27 @@ public class AuthServiceImpl implements AuthService {
 		return ResponseEntity.ok().build();
 	}
 
+	@Override
+	public ResponseEntity<Void> logout(LogoutRequest logoutRequest) {
+
+		if (!jwtTokenProvider.validate(logoutRequest.getAccessToken())) {
+			System.out.println("인증 실패");
+			return ResponseEntity.badRequest().build();
+		}
+
+		Authentication authentication = jwtTokenProvider.getAuthentication(
+				logoutRequest.getAccessToken());
+
+		//Redis 에서 해당 User email 로 저장된 Refresh Token 이 있는지
+		if (redisTemplate.opsForValue().get("RT:" + authentication.getName()) != null) {
+			// Refresh Token 삭제
+			redisTemplate.delete("RT:" + authentication.getName());
+		}
+
+		Long expiration = jwtTokenProvider.getExpiration(logoutRequest.getAccessToken());
+		redisTemplate.opsForValue()
+				.set(logoutRequest.getRefreshToken(), "logout", expiration, TimeUnit.MILLISECONDS);
+
+		return ResponseEntity.ok().build();
+	}
 }

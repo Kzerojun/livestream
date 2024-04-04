@@ -1,17 +1,21 @@
 package KzeroJun.livestream.auth.dto.request;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.stereotype.Service;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@Service
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReissueRequest {
 
-	@NotEmpty(message = "accessToken을 입력해주세요.")
+	@NotBlank(message = "accessToken 입력해주세요.")
 	private String accessToken;
 
-	@NotEmpty(message = "refreshToken 입력해주세요.")
+	@NotBlank(message = "refreshToken 입력해주세요.")
 	private String refreshToken;
 
 }

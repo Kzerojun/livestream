@@ -2,7 +2,7 @@ package KzeroJun.livestream.global.config;
 
 import KzeroJun.livestream.auth.exception.LoginFailedException;
 import KzeroJun.livestream.member.entity.Member;
-import KzeroJun.livestream.member.repository.UserRepository;
+import KzeroJun.livestream.member.repository.MemberRepository;
 import java.util.Collection;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +18,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		return userRepository.findByEmail(username)
+		return memberRepository.findByLoginId(username)
 				.map(this::createUserDetails)
 				.orElseThrow(LoginFailedException::new);
 	}
 
 	private UserDetails createUserDetails(Member member) {
 		Collection<? extends GrantedAuthority> authorities = getAuthorities(member);
-		return new User(member.getEmail(), member.getPassword(), authorities);
+		return new User(member.getLoginId(), member.getPassword(), authorities);
 	}
 
 	private Collection<? extends GrantedAuthority> getAuthorities(Member member) {

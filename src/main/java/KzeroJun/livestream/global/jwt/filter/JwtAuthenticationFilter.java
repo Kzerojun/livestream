@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtTokenProvider jwtTokenProvider;
@@ -31,8 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String token = resolveToken(request);
 
 		//유효성 검사
-		if (token != null && jwtTokenProvider.validate(token) != null) {
+		if (token != null && jwtTokenProvider.validate(token)) {
 			String isLogout = (String) redisTemplate.opsForValue().get(token);
+
 			if (ObjectUtils.isEmpty(isLogout)) {
 				Authentication authentication = jwtTokenProvider.getAuthentication(token);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -43,10 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private String resolveToken(HttpServletRequest request) {
-		String authorization = request.getHeader(AUTHORIZATION_HEADER);
-		if (authorization != null && StringUtils.hasText(BEARER_TYPE) && authorization.startsWith(
+		String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+		if (bearerToken != null && StringUtils.hasText(BEARER_TYPE) && bearerToken.startsWith(
 				BEARER_TYPE)) {
-			return authorization.substring(7);
+			return bearerToken.substring(7);
 		}
 		return null;
 	}

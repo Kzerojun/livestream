@@ -28,7 +28,7 @@ public class Member {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String email;
+	private String loginId;
 
 	private String password;
 
@@ -50,8 +50,8 @@ public class Member {
 	private Boolean verification;
 
 	@Builder
-	public Member(String email, String password, String nickname) {
-		this.email = email;
+	public Member(String loginId, String password, String nickname) {
+		this.loginId = loginId;
 		this.password = password;
 		this.nickname = nickname;
 		this.status = Status.ACTIVATE;
