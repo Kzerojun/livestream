@@ -1,5 +1,6 @@
 package KzeroJun.livestream.member.entity;
 
+import KzeroJun.livestream.broadcaststation.entity.BroadcastStation;
 import KzeroJun.livestream.member.constant.Role;
 import KzeroJun.livestream.member.constant.Status;
 import jakarta.persistence.Column;
@@ -10,6 +11,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -48,6 +51,10 @@ public class Member {
 
 	@Column(name = "verification")
 	private Boolean verification;
+
+	@OneToOne
+	@JoinColumn(name = "broadcast_station_id")
+	BroadcastStation broadcastStation;
 
 	@Builder
 	public Member(String loginId, String password, String nickname) {
